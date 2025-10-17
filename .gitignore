@@ -1,0 +1,25 @@
+# dependencies
+node_modules
+.pnp.*
+
+# testing
+coverage
+
+# production
+build
+dist
+
+# misc
+.expo
+.expo-shared
+*.log
+*.lock
+*.tmp
+
+# macOS
+.DS_Store
+
+# editor directories and files
+.idea
+.vscode
+*.swp
