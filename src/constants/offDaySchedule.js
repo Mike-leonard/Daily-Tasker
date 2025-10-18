@@ -1,0 +1,16 @@
+export const offDaySchedule = [
+  { time: '08:00 – 08:30', activity: '🇮🇹 Italian (flashcards, verb conjugations)' },
+  { time: '08:30 – 09:00', activity: '🇮🇹 Conversation practice (journal 5–6 sentences or voice notes)' },
+  { time: '09:00 – 11:30', activity: '💻 Deep project block (feature build; no tutorials)' },
+  { time: '11:30 – 12:00', activity: 'Break / walk' },
+  { time: '12:00 – 13:00', activity: 'Lunch' },
+  { time: '13:00 – 14:00', activity: '💻 Learning block (React/Node refresh, targeted)' },
+  { time: '14:00 – 15:00', activity: '💻 Implement from learning (commit small increments)' },
+  { time: '15:00 – 15:30', activity: 'Break' },
+  { time: '15:30 – 17:00', activity: '🚀 Showcase work (refactor, write README, push to GitHub)' },
+  { time: '17:00 – 18:00', activity: 'Fitness / outside time' },
+  { time: '18:00 – 19:00', activity: '🇮🇹 Fun Italian (series/music/YouTube, no pressure)' },
+  { time: '19:00 – 20:00', activity: 'Dinner' },
+  { time: '20:00 – 22:00', activity: 'Optional creative coding or rest/social' },
+  { time: '22:30 – 07:00/08:00', activity: 'Sleep (aim 7–8 h)' },
+];

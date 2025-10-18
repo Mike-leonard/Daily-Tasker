@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {
+  Alert,
   FlatList,
   Text,
   TextInput,
@@ -7,31 +8,158 @@ import {
   View,
 } from 'react-native';
 
-import {
-  formatBadgeLabel,
-  formatLongDate,
-  formatWeekday,
-} from '../utils/date';
+import { offDaySchedule } from '../constants/offDaySchedule';
+import { workDaySchedule } from '../constants/workDaySchedule';
 import { dayStyles } from '../styles/styles';
+import { formatBadgeLabel, formatLongDate, formatWeekday } from '../utils/date';
+import {
+  buildScheduleId,
+  buildScheduleTimerId,
+  extractDurationMinutes,
+} from '../utils/schedule';
+import { formatDuration, formatMinutesToLabel } from '../utils/time';
 import TaskCard from './TaskCard';
+
+const DAY_TYPE_OPTIONS = [
+  { value: 'work', label: 'Work Day' },
+  { value: 'off', label: 'Off Day' },
+];
+
+const showTimerBusyAlert = () =>
+  Alert.alert(
+    'Timer already running',
+    'Please wait for the current timer to finish before starting another.',
+  );
 
 const DayPage = ({
   dateEntry,
   tasks,
   inputValue,
+  dayType,
   onInputChange,
   onAddTask,
   onToggleTask,
   onRemoveTask,
+  onChangeDayType,
+  onStartTaskTimer = () => true,
+  onStartScheduleTimer = () => true,
+  getTimer = () => undefined,
+  isScheduleCompleted = () => false,
   width,
 }) => {
   const incompleteCount = tasks.filter((task) => !task.completed).length;
+  const schedule = dayType === 'work' ? workDaySchedule : offDaySchedule;
+  const showSchedule = dayType === 'work' || dayType === 'off';
+  const summaryText =
+    tasks.length === 0
+      ? 'No tasks scheduled yet.'
+      : incompleteCount === 0
+      ? 'All tasks completed for this day.'
+      : `${incompleteCount} of ${tasks.length} remaining`;
+
+  const promptForDuration = (onSelect) =>
+    Alert.alert('Start focus timer', 'Choose a duration', [
+      {
+        text: '30 minutes',
+        onPress: () => {
+          const success = onSelect(30);
+          if (!success) {
+            showTimerBusyAlert();
+          }
+        },
+      },
+      {
+        text: '1 hour',
+        onPress: () => {
+          const success = onSelect(60);
+          if (!success) {
+            showTimerBusyAlert();
+          }
+        },
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+
+  const handleTaskTimerStart = (task) => {
+    const existingTimer = getTimer(task.id);
+    if (existingTimer?.isRunning) {
+      Alert.alert(
+        'Timer already running',
+        'A focus timer is currently active for this task.',
+      );
+      return;
+    }
+
+    promptForDuration((duration) => {
+      const success = onStartTaskTimer(task, duration);
+      if (!success) {
+        showTimerBusyAlert();
+      }
+      return success;
+    });
+  };
+
+  const handleScheduleTimerStart = (
+    scheduleId,
+    timerId,
+    durationMinutes,
+    completed,
+    scheduleItem,
+  ) => {
+    if (completed) {
+      Alert.alert(
+        'Already completed',
+        'This schedule block is already marked as done.',
+      );
+      return;
+    }
+
+    const existingTimer = getTimer(timerId);
+    if (existingTimer?.isRunning) {
+      Alert.alert(
+        'Timer already running',
+        'A focus timer is currently active for this schedule block.',
+      );
+      return;
+    }
+
+    if (Number.isFinite(durationMinutes) && durationMinutes > 0) {
+      const success = onStartScheduleTimer(
+        scheduleId,
+        timerId,
+        durationMinutes,
+        scheduleItem,
+      );
+      if (!success) {
+        showTimerBusyAlert();
+      }
+      return;
+    }
+
+    promptForDuration((duration) => {
+      const success = onStartScheduleTimer(
+        scheduleId,
+        timerId,
+        duration,
+        scheduleItem,
+      );
+      if (!success) {
+        showTimerBusyAlert();
+      }
+      return success;
+    });
+  };
 
   const renderTask = ({ item }) => (
     <TaskCard
       task={item}
+      timer={getTimer(item.id)}
       onToggle={() => onToggleTask(item.id)}
       onRemove={() => onRemoveTask(item.id)}
+      onStart={() => handleTaskTimerStart(item)}
     />
   );
 
@@ -46,48 +174,157 @@ const DayPage = ({
           </View>
           <Text style={dayStyles.title}>{formatWeekday(dateEntry.date)}</Text>
           <Text style={dayStyles.subtitle}>{formatLongDate(dateEntry.date)}</Text>
-          <Text style={dayStyles.summary}>
-            {tasks.length === 0
-              ? 'No tasks scheduled yet.'
-              : incompleteCount === 0
-              ? 'All tasks completed for this day.'
-              : `${incompleteCount} of ${tasks.length} remaining`}
-          </Text>
+          <Text style={dayStyles.summary}>{summaryText}</Text>
         </View>
 
-        <View style={dayStyles.inputRow}>
-          <TextInput
-            value={inputValue}
-            onChangeText={onInputChange}
-            placeholder="Add a task for this date..."
-            placeholderTextColor="#9ca3af"
-            style={dayStyles.input}
-            returnKeyType="done"
-            onSubmitEditing={onAddTask}
-          />
-          <TouchableOpacity
-            style={dayStyles.primaryButton}
-            onPress={onAddTask}
-            accessibilityRole="button"
-            accessibilityLabel={`Add task for ${formatLongDate(dateEntry.date)}`}
-          >
-            <Ionicons name="add" size={24} color="#fff" />
-          </TouchableOpacity>
+        <View style={dayStyles.dayTypeRow}>
+          {DAY_TYPE_OPTIONS.map((option) => {
+            const selected = dayType === option.value;
+            return (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  dayStyles.dayTypeOption,
+                  selected && dayStyles.dayTypeOptionSelected,
+                ]}
+                onPress={() => onChangeDayType(option.value)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: selected }}
+                accessibilityLabel={`Mark this as ${option.label}`}
+              >
+                <Ionicons
+                  name={selected ? 'checkbox' : 'square-outline'}
+                  size={20}
+                  color={selected ? '#2563eb' : '#6b7280'}
+                />
+                <Text
+                  style={[
+                    dayStyles.dayTypeLabel,
+                    selected && dayStyles.dayTypeLabelSelected,
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
-        <FlatList
-          data={tasks}
-          keyExtractor={(task) => task.id}
-          renderItem={renderTask}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={dayStyles.listContent}
-          ListEmptyComponent={
-            <Text style={dayStyles.emptyState}>
-              Plan something for this day to keep momentum going.
+        {showSchedule && (
+          <View style={dayStyles.scheduleSection}>
+            <Text style={dayStyles.scheduleHeading}>
+              {dayType === 'work' ? 'Work Day Plan' : 'Off Day Plan'}
             </Text>
-          }
-          nestedScrollEnabled
-        />
+            {schedule.map((item) => {
+              const scheduleId = buildScheduleId(dayType, item.time);
+              const timerId = buildScheduleTimerId(dateEntry.key, scheduleId);
+              const timer = getTimer(timerId);
+              const timerRunning = Boolean(timer?.isRunning);
+              const timerLabel = timerRunning
+                ? formatDuration(timer.remainingMs)
+                : null;
+              const completed = isScheduleCompleted(scheduleId);
+              const durationMinutes = extractDurationMinutes(item.time);
+              const durationLabel = formatMinutesToLabel(durationMinutes);
+              const buttonLabel = completed
+                ? 'Done'
+                : timerRunning
+                ? timerLabel ?? 'Running'
+                : durationLabel
+                ? `Start ${durationLabel}`
+                : 'Start';
+
+              return (
+                <View
+                  key={`${item.time}-${item.activity}`}
+                  style={[
+                    dayStyles.scheduleRow,
+                    completed && dayStyles.scheduleRowCompleted,
+                  ]}
+                >
+                  <View style={dayStyles.scheduleInfo}>
+                    <Text style={dayStyles.scheduleTime}>{item.time}</Text>
+                    <Text style={dayStyles.scheduleActivity}>
+                      {item.activity}
+                    </Text>
+                    {timerRunning && (
+                      <Text style={dayStyles.scheduleTimerText}>
+                        Focus timer: {timerLabel}
+                      </Text>
+                    )}
+                  </View>
+                  <View style={dayStyles.scheduleActions}>
+                    <TouchableOpacity
+                      onPress={() =>
+                        handleScheduleTimerStart(
+                          scheduleId,
+                          timerId,
+                          durationMinutes,
+                          completed,
+                          item,
+                        )
+                      }
+                      disabled={completed}
+                      style={[
+                        dayStyles.scheduleButton,
+                        timerRunning && dayStyles.scheduleButtonRunning,
+                        completed && dayStyles.scheduleButtonCompleted,
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Start focus timer for ${item.activity}`}
+                    >
+                      <Text
+                        style={[
+                          dayStyles.scheduleButtonText,
+                          completed && dayStyles.scheduleButtonTextCompleted,
+                        ]}
+                      >
+                        {buttonLabel}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        <View style={dayStyles.tasksSection}>
+          <Text style={dayStyles.tasksHeading}>Your Tasks</Text>
+          <View style={dayStyles.inputRow}>
+            <TextInput
+              value={inputValue}
+              onChangeText={onInputChange}
+              placeholder="Add a task for this date..."
+              placeholderTextColor="#9ca3af"
+              style={dayStyles.input}
+              returnKeyType="done"
+              onSubmitEditing={onAddTask}
+            />
+            <TouchableOpacity
+              style={dayStyles.primaryButton}
+              onPress={onAddTask}
+              accessibilityRole="button"
+              accessibilityLabel={`Add task for ${formatLongDate(dateEntry.date)}`}
+            >
+              <Ionicons name="add" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          <FlatList
+            data={tasks}
+            keyExtractor={(task) => task.id}
+            renderItem={renderTask}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={dayStyles.listContent}
+            ListEmptyComponent={
+              <Text style={dayStyles.emptyState}>
+                Plan something for this day to keep momentum going.
+              </Text>
+            }
+            nestedScrollEnabled
+          />
+        </View>
       </View>
     </View>
   );

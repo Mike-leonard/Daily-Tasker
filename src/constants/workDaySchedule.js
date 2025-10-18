@@ -1,0 +1,17 @@
+export const workDaySchedule = [
+  { time: '08:00 – 08:30', activity: '🇮🇹 Italian refresh (vocab review + quick drilling)' },
+  { time: '08:30 – 09:00', activity: '🇮🇹 Listening & speaking (shadow a short video/podcast)' },
+  { time: '09:00 – 11:00', activity: '💻 Web Dev deep work (project or core topic). Use 50/10 focus cycles.' },
+  { time: '11:00 – 11:15', activity: 'Break (hydrate, short walk)' },
+  { time: '11:15 – 12:15', activity: '💻 Practice hour (implement a feature, fix bugs, small kata)' },
+  { time: '12:15 – 13:00', activity: 'Lunch + unplugged break' },
+  { time: '13:00 – 14:00', activity: '💻 Learning block (tutorial/reading, take concise notes)' },
+  { time: '14:00 – 15:30', activity: '💻 Build hour (apply what you learned to your project)' },
+  { time: '15:30 – 16:00', activity: 'Break / light snack' },
+  { time: '16:00 – 17:30', activity: '😴 Power nap (your preferred 90 min)' },
+  { time: '17:30 – 18:00', activity: 'Prep for work (snack, plan, commute buffer)' },
+  { time: '18:00 – 24:00', activity: '🧑‍💼 Work shift' },
+  { time: '24:00 – 01:00', activity: 'Commute home' },
+  { time: '01:00 – 01:30', activity: 'Shower, light meal, wind down' },
+  { time: '01:30 – 09:00', activity: '😴 Sleep (~7.5 h)' },
+];

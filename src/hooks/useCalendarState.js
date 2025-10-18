@@ -21,6 +21,14 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
     return firstKey ? { [firstKey]: '' } : {};
   });
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [dayTypeByDate, setDayTypeByDate] = useState(() => {
+    const firstKey = initialDates[0]?.key;
+    return firstKey ? { [firstKey]: 'work' } : {};
+  });
+  const [scheduleCompletionByDate, setScheduleCompletionByDate] = useState(() => {
+    const firstKey = initialDates[0]?.key;
+    return firstKey ? { [firstKey]: {} } : {};
+  });
 
   const ensureDateState = useCallback((dateKey) => {
     setTasksByDate((prev) =>
@@ -32,6 +40,16 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
       Object.prototype.hasOwnProperty.call(prev, dateKey)
         ? prev
         : { ...prev, [dateKey]: '' },
+    );
+    setDayTypeByDate((prev) =>
+      Object.prototype.hasOwnProperty.call(prev, dateKey)
+        ? prev
+        : { ...prev, [dateKey]: 'work' },
+    );
+    setScheduleCompletionByDate((prev) =>
+      Object.prototype.hasOwnProperty.call(prev, dateKey)
+        ? prev
+        : { ...prev, [dateKey]: {} },
     );
   }, []);
 
@@ -107,6 +125,24 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
     });
   }, []);
 
+  const completeTask = useCallback((dateKey, taskId) => {
+    setTasksByDate((prev) => {
+      const dayTasks = prev[dateKey];
+      if (!dayTasks) {
+        return prev;
+      }
+      const alreadyComplete = dayTasks.every((task) => task.id !== taskId || task.completed);
+      if (alreadyComplete) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [dateKey]: dayTasks.map((task) =>
+          task.id === taskId ? { ...task, completed: true } : task,
+        ),
+      };
+    });
+  }, []);
   const getTasksForDate = useCallback(
     (dateKey) => tasksByDate[dateKey] ?? [],
     [tasksByDate],
@@ -117,11 +153,71 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
     [inputValues],
   );
 
+  const getDayTypeForDate = useCallback(
+    (dateKey) => dayTypeByDate[dateKey] ?? 'work',
+    [dayTypeByDate],
+  );
+
+  const setDayTypeForDate = useCallback((dateKey, type) => {
+    setDayTypeByDate((prev) => {
+      if (prev[dateKey] === type) {
+        return prev;
+      }
+
+      setScheduleCompletionByDate((schedulePrev) => ({
+        ...schedulePrev,
+        [dateKey]: {},
+      }));
+
+      return {
+        ...prev,
+        [dateKey]: type,
+      };
+    });
+  }, [setScheduleCompletionByDate]);
+
   const currentDateEntry = dates[currentIndex] ?? dates[0];
   const currentTasks = currentDateEntry
     ? getTasksForDate(currentDateEntry.key)
     : [];
   const remainingTasks = currentTasks.filter((task) => !task.completed).length;
+
+  const isScheduleCompleted = useCallback(
+    (dateKey, scheduleId) =>
+      Boolean(scheduleCompletionByDate[dateKey]?.[scheduleId]),
+    [scheduleCompletionByDate],
+  );
+
+  const markScheduleCompleted = useCallback((dateKey, scheduleId) => {
+    setScheduleCompletionByDate((prev) => {
+      const dayState = prev[dateKey] ?? {};
+      if (dayState[scheduleId]) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [dateKey]: {
+          ...dayState,
+          [scheduleId]: true,
+        },
+      };
+    });
+  }, []);
+
+  const resetScheduleCompletion = useCallback((dateKey, scheduleId) => {
+    setScheduleCompletionByDate((prev) => {
+      const dayState = prev[dateKey];
+      if (!dayState?.[scheduleId]) {
+        return prev;
+      }
+
+      const { [scheduleId]: _removed, ...restDayState } = dayState;
+      return {
+        ...prev,
+        [dateKey]: restDayState,
+      };
+    });
+  }, []);
 
   return {
     dates,
@@ -132,9 +228,15 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
     handleAddTaskForDate,
     toggleTaskCompletion,
     removeTask,
+    completeTask,
     getTasksForDate,
     getInputValueForDate,
+    getDayTypeForDate,
+    setDayTypeForDate,
     currentDateEntry,
     remainingTasks,
+    isScheduleCompleted,
+    markScheduleCompleted,
+    resetScheduleCompletion,
   };
 };

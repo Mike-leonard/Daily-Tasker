@@ -12,9 +12,18 @@ export const calendarStyles = StyleSheet.create({
     flex: 1,
   },
   headerSection: {
-    paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 8,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+  },
+  headerTitles: {
+    flex: 1,
+    marginRight: 12,
   },
   heading: {
     fontSize: 32,
@@ -25,6 +34,63 @@ export const calendarStyles = StyleSheet.create({
     marginTop: 6,
     fontSize: 16,
     color: '#475569',
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e2e8f0',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.35)',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 32,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  settingCopy: {
+    flex: 1,
+    marginRight: 12,
+  },
+  settingTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0f172a',
+  },
+  settingSubtitle: {
+    marginTop: 4,
+    fontSize: 14,
+    color: '#64748b',
+    lineHeight: 20,
+  },
+  settingWarning: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#dc2626',
   },
 });
 
@@ -71,6 +137,36 @@ export const dayStyles = StyleSheet.create({
     fontSize: 14,
     color: '#64748b',
   },
+  dayTypeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  dayTypeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#fff',
+    marginRight: 12,
+  },
+  dayTypeOptionSelected: {
+    borderColor: '#2563eb',
+    backgroundColor: '#dbeafe',
+  },
+  dayTypeLabel: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#475569',
+  },
+  dayTypeLabelSelected: {
+    color: '#1d4ed8',
+    fontWeight: '600',
+  },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -106,6 +202,84 @@ export const dayStyles = StyleSheet.create({
     color: '#94a3b8',
     fontSize: 16,
   },
+  scheduleSection: {
+    marginTop: 16,
+  },
+  scheduleHeading: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 12,
+  },
+  scheduleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    marginBottom: 10,
+  },
+  scheduleRowCompleted: {
+    backgroundColor: '#e0f2fe',
+    borderColor: '#38bdf8',
+  },
+  scheduleInfo: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  scheduleActions: {
+    alignItems: 'flex-end',
+  },
+  scheduleTime: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1d4ed8',
+    marginBottom: 4,
+  },
+  scheduleActivity: {
+    fontSize: 14,
+    color: '#1f2937',
+    lineHeight: 20,
+  },
+  scheduleTimerText: {
+    marginTop: 6,
+    fontSize: 12,
+    color: '#2563eb',
+    fontWeight: '600',
+  },
+  scheduleButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: '#2563eb',
+  },
+  scheduleButtonRunning: {
+    backgroundColor: '#1e3a8a',
+  },
+  scheduleButtonCompleted: {
+    backgroundColor: '#9ca3af',
+  },
+  scheduleButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  scheduleButtonTextCompleted: {
+    color: '#f8fafc',
+  },
+  tasksSection: {
+    marginTop: 24,
+  },
+  tasksHeading: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 12,
+  },
 });
 
 export const taskStyles = StyleSheet.create({
@@ -136,6 +310,38 @@ export const taskStyles = StyleSheet.create({
   titleCompleted: {
     textDecorationLine: 'line-through',
     color: '#6b7280',
+  },
+  timerText: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#1d4ed8',
+    fontWeight: '600',
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  timerButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: '#2563eb',
+    marginRight: 8,
+  },
+  timerButtonActive: {
+    backgroundColor: '#1e3a8a',
+  },
+  timerButtonDisabled: {
+    backgroundColor: '#9ca3af',
+  },
+  timerButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  timerButtonTextDisabled: {
+    color: '#f8fafc',
   },
   removeButton: {
     padding: 4,
