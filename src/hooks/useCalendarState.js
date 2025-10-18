@@ -219,6 +219,18 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
     });
   }, []);
 
+  const resetScheduleCompletionForDate = useCallback((dateKey) => {
+    setScheduleCompletionByDate((prev) => {
+      if (!prev[dateKey] || Object.keys(prev[dateKey]).length === 0) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [dateKey]: {},
+      };
+    });
+  }, []);
+
   return {
     dates,
     currentIndex,
@@ -238,5 +250,6 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
     isScheduleCompleted,
     markScheduleCompleted,
     resetScheduleCompletion,
+    resetScheduleCompletionForDate,
   };
 };

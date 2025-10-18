@@ -1,15 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   Alert,
-  FlatList,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 
-import { offDaySchedule } from '../constants/offDaySchedule';
-import { workDaySchedule } from '../constants/workDaySchedule';
 import { dayStyles } from '../styles/styles';
 import { formatBadgeLabel, formatLongDate, formatWeekday } from '../utils/date';
 import {
@@ -36,6 +35,7 @@ const DayPage = ({
   tasks,
   inputValue,
   dayType,
+  schedule = [],
   onInputChange,
   onAddTask,
   onToggleTask,
@@ -48,8 +48,7 @@ const DayPage = ({
   width,
 }) => {
   const incompleteCount = tasks.filter((task) => !task.completed).length;
-  const schedule = dayType === 'work' ? workDaySchedule : offDaySchedule;
-  const showSchedule = dayType === 'work' || dayType === 'off';
+  const showSchedule = schedule.length > 0;
   const summaryText =
     tasks.length === 0
       ? 'No tasks scheduled yet.'
@@ -153,8 +152,11 @@ const DayPage = ({
     });
   };
 
-  const renderTask = ({ item }) => (
+  const { height: windowHeight } = useWindowDimensions();
+
+  const renderTask = (item) => (
     <TaskCard
+      key={item.id}
       task={item}
       timer={getTimer(item.id)}
       onToggle={() => onToggleTask(item.id)}
@@ -164,8 +166,14 @@ const DayPage = ({
   );
 
   return (
-    <View style={[dayStyles.page, { width }]}>
-      <View style={dayStyles.content}>
+    <View style={[dayStyles.page, { width, minHeight: windowHeight }]}>
+      <ScrollView
+        style={dayStyles.scrollContainer}
+        contentContainerStyle={dayStyles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
+        showsVerticalScrollIndicator={false}
+      >
         <View style={dayStyles.header}>
           <View style={dayStyles.dateBadge}>
             <Text style={dayStyles.dateBadgeText}>
@@ -311,21 +319,15 @@ const DayPage = ({
             </TouchableOpacity>
           </View>
 
-          <FlatList
-            data={tasks}
-            keyExtractor={(task) => task.id}
-            renderItem={renderTask}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={dayStyles.listContent}
-            ListEmptyComponent={
-              <Text style={dayStyles.emptyState}>
-                Plan something for this day to keep momentum going.
-              </Text>
-            }
-            nestedScrollEnabled
-          />
+          {tasks.length > 0 ? (
+            <View style={dayStyles.taskList}>{tasks.map(renderTask)}</View>
+          ) : (
+            <Text style={dayStyles.emptyState}>
+              Plan something for this day to keep momentum going.
+            </Text>
+          )}
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 };

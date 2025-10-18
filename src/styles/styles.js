@@ -8,6 +8,10 @@ export const appStyles = StyleSheet.create({
 });
 
 export const calendarStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  
   keyboardAvoider: {
     flex: 1,
   },
@@ -67,6 +71,31 @@ export const calendarStyles = StyleSheet.create({
     fontWeight: '700',
     color: '#0f172a',
   },
+  modalTabs: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e2e8f0',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 20,
+  },
+  modalTabButton: {
+    flex: 1,
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  modalTabButtonActive: {
+    backgroundColor: '#fff',
+  },
+  modalTabLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  modalTabLabelActive: {
+    color: '#0f172a',
+  },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -92,17 +121,146 @@ export const calendarStyles = StyleSheet.create({
     fontSize: 12,
     color: '#dc2626',
   },
+  modalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: 28,
+    gap: 12,
+  },
+  modalPrimaryButton: {
+    backgroundColor: '#2563eb',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+  },
+  modalPrimaryButtonDisabled: {
+    backgroundColor: '#94a3b8',
+  },
+  modalPrimaryLabel: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalSecondaryButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: '#e2e8f0',
+  },
+  modalSecondaryLabel: {
+    color: '#0f172a',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  scheduleEditorSection: {
+    flex: 1,
+  },
+  scheduleTypeTabs: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e0f2fe',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 16,
+  },
+  scheduleTypeButton: {
+    flex: 1,
+    borderRadius: 8,
+    paddingVertical: 6,
+    alignItems: 'center',
+  },
+  scheduleTypeButtonActive: {
+    backgroundColor: '#2563eb',
+  },
+  scheduleTypeLabel: {
+    fontSize: 13,
+    color: '#1f2937',
+    fontWeight: '600',
+  },
+  scheduleTypeLabelActive: {
+    color: '#fff',
+  },
+  scheduleEditorList: {
+    flex: 1,
+    marginBottom: 16,
+  },
+  scheduleEditorContent: {
+    paddingBottom: 8,
+    gap: 12,
+  },
+  scheduleEditRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 14,
+    padding: 12,
+    backgroundColor: '#fff',
+    gap: 12,
+  },
+  scheduleEditInputs: {
+    flex: 1,
+    gap: 8,
+  },
+  scheduleEditTime: {
+    borderWidth: 1,
+    borderColor: '#cbd5f5',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#0f172a',
+    fontWeight: '600',
+  },
+  scheduleEditActivity: {
+    borderWidth: 1,
+    borderColor: '#cbd5f5',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#0f172a',
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+  scheduleEditRemove: {
+    padding: 6,
+  },
+  scheduleEditorActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  scheduleActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: '#e0f2fe',
+  },
+  scheduleActionLabel: {
+    color: '#2563eb',
+    fontSize: 13,
+    fontWeight: '600',
+  },
 });
 
 export const dayStyles = StyleSheet.create({
   page: {
     flex: 1,
+    height: '100%',
   },
-  content: {
+  scrollContainer: {
     flex: 1,
+  },
+  contentContainer: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 24,
+    paddingBottom: 40,
+    flexGrow: 1,
   },
   header: {
     marginBottom: 12,
@@ -273,6 +431,10 @@ export const dayStyles = StyleSheet.create({
   },
   tasksSection: {
     marginTop: 24,
+  },
+  taskList: {
+    gap: 12,
+    paddingBottom: 32,
   },
   tasksHeading: {
     fontSize: 16,
