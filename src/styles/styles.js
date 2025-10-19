@@ -251,7 +251,7 @@ export const calendarStyles = StyleSheet.create({
 export const dayStyles = StyleSheet.create({
   page: {
     flex: 1,
-    height: '100%',
+    backgroundColor: '#f8fafc',
   },
   scrollContainer: {
     flex: 1,

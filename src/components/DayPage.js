@@ -166,10 +166,13 @@ const DayPage = ({
   );
 
   return (
-    <View style={[dayStyles.page, { width, minHeight: windowHeight }]}>
+    <View style={[dayStyles.page, { width, height: windowHeight }]}>
       <ScrollView
         style={dayStyles.scrollContainer}
-        contentContainerStyle={dayStyles.contentContainer}
+        contentContainerStyle={[
+          dayStyles.contentContainer,
+          { minHeight: windowHeight },
+        ]}
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled
         showsVerticalScrollIndicator={false}
