@@ -59,6 +59,7 @@ export const calendarStyles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 32,
+    maxHeight: '92vh',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -78,6 +79,12 @@ export const calendarStyles = StyleSheet.create({
     borderRadius: 12,
     padding: 4,
     marginBottom: 20,
+  },
+  modalScroll: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    paddingBottom: 20,
   },
   modalTabButton: {
     flex: 1,
@@ -252,6 +259,7 @@ export const dayStyles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: '#f8fafc',
+    paddingBottom: 50,
   },
   scrollContainer: {
     flex: 1,
@@ -289,11 +297,6 @@ export const dayStyles = StyleSheet.create({
     marginTop: 2,
     fontSize: 16,
     color: '#475569',
-  },
-  summary: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#64748b',
   },
   dayTypeRow: {
     flexDirection: 'row',

@@ -1,12 +1,10 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   Alert,
   ScrollView,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useWindowDimensions } from 'react-native';
 
 import { dayStyles } from '../styles/styles';
@@ -17,7 +15,7 @@ import {
   extractDurationMinutes,
 } from '../utils/schedule';
 import { formatDuration, formatMinutesToLabel } from '../utils/time';
-import TaskCard from './TaskCard';
+import { TouchableOpacity } from 'react-native';
 
 const DAY_TYPE_OPTIONS = [
   { value: 'work', label: 'Work Day' },
@@ -32,29 +30,20 @@ const showTimerBusyAlert = () =>
 
 const DayPage = ({
   dateEntry,
-  tasks,
-  inputValue,
   dayType,
   schedule = [],
-  onInputChange,
-  onAddTask,
-  onToggleTask,
-  onRemoveTask,
   onChangeDayType,
-  onStartTaskTimer = () => true,
   onStartScheduleTimer = () => true,
   getTimer = () => undefined,
   isScheduleCompleted = () => false,
   width,
 }) => {
-  const incompleteCount = tasks.filter((task) => !task.completed).length;
+  const totalBlocks = schedule.length;
+  const completedBlocks = schedule.filter((block) =>
+    isScheduleCompleted(buildScheduleId(dayType, block.time)),
+  ).length;
+  const remainingBlocks = Math.max(totalBlocks - completedBlocks, 0);
   const showSchedule = schedule.length > 0;
-  const summaryText =
-    tasks.length === 0
-      ? 'No tasks scheduled yet.'
-      : incompleteCount === 0
-      ? 'All tasks completed for this day.'
-      : `${incompleteCount} of ${tasks.length} remaining`;
 
   const promptForDuration = (onSelect) =>
     Alert.alert('Start focus timer', 'Choose a duration', [
@@ -81,25 +70,6 @@ const DayPage = ({
         style: 'cancel',
       },
     ]);
-
-  const handleTaskTimerStart = (task) => {
-    const existingTimer = getTimer(task.id);
-    if (existingTimer?.isRunning) {
-      Alert.alert(
-        'Timer already running',
-        'A focus timer is currently active for this task.',
-      );
-      return;
-    }
-
-    promptForDuration((duration) => {
-      const success = onStartTaskTimer(task, duration);
-      if (!success) {
-        showTimerBusyAlert();
-      }
-      return success;
-    });
-  };
 
   const handleScheduleTimerStart = (
     scheduleId,
@@ -154,17 +124,6 @@ const DayPage = ({
 
   const { height: windowHeight } = useWindowDimensions();
 
-  const renderTask = (item) => (
-    <TaskCard
-      key={item.id}
-      task={item}
-      timer={getTimer(item.id)}
-      onToggle={() => onToggleTask(item.id)}
-      onRemove={() => onRemoveTask(item.id)}
-      onStart={() => handleTaskTimerStart(item)}
-    />
-  );
-
   return (
     <View style={[dayStyles.page, { width, height: windowHeight }]}>
       <ScrollView
@@ -185,7 +144,6 @@ const DayPage = ({
           </View>
           <Text style={dayStyles.title}>{formatWeekday(dateEntry.date)}</Text>
           <Text style={dayStyles.subtitle}>{formatLongDate(dateEntry.date)}</Text>
-          <Text style={dayStyles.summary}>{summaryText}</Text>
         </View>
 
         <View style={dayStyles.dayTypeRow}>
@@ -300,36 +258,6 @@ const DayPage = ({
           </View>
         )}
 
-        <View style={dayStyles.tasksSection}>
-          <Text style={dayStyles.tasksHeading}>Your Tasks</Text>
-          <View style={dayStyles.inputRow}>
-            <TextInput
-              value={inputValue}
-              onChangeText={onInputChange}
-              placeholder="Add a task for this date..."
-              placeholderTextColor="#9ca3af"
-              style={dayStyles.input}
-              returnKeyType="done"
-              onSubmitEditing={onAddTask}
-            />
-            <TouchableOpacity
-              style={dayStyles.primaryButton}
-              onPress={onAddTask}
-              accessibilityRole="button"
-              accessibilityLabel={`Add task for ${formatLongDate(dateEntry.date)}`}
-            >
-              <Ionicons name="add" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-
-          {tasks.length > 0 ? (
-            <View style={dayStyles.taskList}>{tasks.map(renderTask)}</View>
-          ) : (
-            <Text style={dayStyles.emptyState}>
-              Plan something for this day to keep momentum going.
-            </Text>
-          )}
-        </View>
       </ScrollView>
     </View>
   );

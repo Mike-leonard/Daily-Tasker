@@ -177,11 +177,27 @@ const CalendarPager = () => {
     }
   });
 
+  const activeDayType = currentDateEntry
+    ? getDayTypeForDate(currentDateEntry.key)
+    : 'work';
+  const activeSchedule = currentDateEntry
+    ? schedules[activeDayType] ?? []
+    : [];
+  const totalBlocks = activeSchedule.length;
+  const completedBlocks = activeSchedule.filter((block) =>
+    isScheduleCompleted(
+      currentDateEntry.key,
+      buildScheduleId(activeDayType, block.time),
+    ),
+  ).length;
+  const remainingBlocks = Math.max(totalBlocks - completedBlocks, 0);
+
   const headerSubtitle = currentDateEntry
-    ? `${formatLongDate(currentDateEntry.date)} • ${remainingTasks === 0
-      ? 'All tasks completed'
-      : `${remainingTasks} task${remainingTasks === 1 ? '' : 's'} remaining`
-    }`
+    ? `${formatLongDate(currentDateEntry.date)} • ${
+        totalBlocks === 0
+          ? 'No blocks scheduled'
+          : `${remainingBlocks} of ${totalBlocks} blocks remaining`
+      }`
     : 'Preparing your schedule...';
 
   return (
@@ -210,14 +226,11 @@ const CalendarPager = () => {
               onToggleTask={(taskId) => handleToggleTask(item.key, taskId)}
               onRemoveTask={(taskId) => handleRemoveTask(item.key, taskId)}
               onChangeDayType={(type) => handleDayTypeChange(item.key, type)}
-              onStartTaskTimer={(task, duration) =>
-                handleStartTaskTimer(item.key, task, duration)
-              }
-              onStartScheduleTimer={(scheduleId, timerId, duration, scheduleItem) =>
-                handleStartScheduleTimer(
-                  item.key,
-                  scheduleId,
-                  timerId,
+            onStartScheduleTimer={(scheduleId, timerId, duration, scheduleItem) =>
+              handleStartScheduleTimer(
+                item.key,
+                scheduleId,
+                timerId,
                   duration,
                   scheduleItem,
                 )

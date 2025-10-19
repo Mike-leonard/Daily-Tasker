@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
+import { useWindowDimensions } from 'react-native';
 
 import { calendarStyles } from '../styles/styles';
 import { useNotificationSettings } from '../context/NotificationContext';
@@ -46,6 +47,8 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
   const { enabled, toggleNotifications, permissionStatus } =
     useNotificationSettings();
   const { schedules, setSchedule } = useSchedules();
+
+  const { height: windowHeight } = useWindowDimensions();
 
   const [activeTab, setActiveTab] = useState('notifications');
   const [selectedDayType, setSelectedDayType] = useState('work');
@@ -259,7 +262,12 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
       onRequestClose={onRequestClose}
     >
       <View style={calendarStyles.modalBackdrop}>
-        <View style={calendarStyles.modalCard}>
+        <View
+          style={[
+            calendarStyles.modalCard,
+            { maxHeight: windowHeight * 0.92 },
+          ]}
+        >
           <View style={calendarStyles.modalHeader}>
             <Text style={calendarStyles.modalTitle}>Settings</Text>
             <Pressable
@@ -297,9 +305,15 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
             })}
           </View>
 
-          {activeTab === 'notifications'
-            ? renderNotificationSettings()
-            : renderScheduleEditor()}
+          <ScrollView
+            style={calendarStyles.modalScroll}
+            contentContainerStyle={calendarStyles.modalScrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            {activeTab === 'notifications'
+              ? renderNotificationSettings()
+              : renderScheduleEditor()}
+          </ScrollView>
 
           <View style={calendarStyles.modalFooter}>
             <TouchableOpacity
