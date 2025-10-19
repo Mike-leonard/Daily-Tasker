@@ -29,6 +29,11 @@ export const calendarStyles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   heading: {
     fontSize: 32,
     fontWeight: '700',
@@ -46,6 +51,10 @@ export const calendarStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#e2e8f0',
+  },
+  headerButtonDisabled: {
+    backgroundColor: '#e2e8f0',
+    opacity: 0.6,
   },
   modalBackdrop: {
     flex: 1,
@@ -102,6 +111,9 @@ export const calendarStyles = StyleSheet.create({
   },
   modalTabLabelActive: {
     color: '#0f172a',
+  },
+  pressablePressed: {
+    opacity: 0.75,
   },
   settingRow: {
     flexDirection: 'row',
@@ -293,15 +305,10 @@ export const dayStyles = StyleSheet.create({
     fontWeight: '700',
     color: '#0f172a',
   },
-  subtitle: {
-    marginTop: 2,
-    fontSize: 16,
-    color: '#475569',
-  },
   dayTypeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 4,
     marginBottom: 12,
   },
   dayTypeOption: {

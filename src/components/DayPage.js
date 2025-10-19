@@ -2,6 +2,7 @@ import {
   Alert,
   ScrollView,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -15,7 +16,6 @@ import {
   extractDurationMinutes,
 } from '../utils/schedule';
 import { formatDuration, formatMinutesToLabel } from '../utils/time';
-import { TouchableOpacity } from 'react-native';
 
 const DAY_TYPE_OPTIONS = [
   { value: 'work', label: 'Work Day' },
@@ -38,11 +38,6 @@ const DayPage = ({
   isScheduleCompleted = () => false,
   width,
 }) => {
-  const totalBlocks = schedule.length;
-  const completedBlocks = schedule.filter((block) =>
-    isScheduleCompleted(buildScheduleId(dayType, block.time)),
-  ).length;
-  const remainingBlocks = Math.max(totalBlocks - completedBlocks, 0);
   const showSchedule = schedule.length > 0;
 
   const promptForDuration = (onSelect) =>
@@ -143,7 +138,6 @@ const DayPage = ({
             </Text>
           </View>
           <Text style={dayStyles.title}>{formatWeekday(dateEntry.date)}</Text>
-          <Text style={dayStyles.subtitle}>{formatLongDate(dateEntry.date)}</Text>
         </View>
 
         <View style={dayStyles.dayTypeRow}>

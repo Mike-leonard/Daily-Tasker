@@ -6,7 +6,6 @@ import {
   Switch,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
@@ -171,11 +170,12 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
           {dayTypeOptions.map((option) => {
             const selected = option.id === selectedDayType;
             return (
-              <TouchableOpacity
+              <Pressable
                 key={option.id}
-                style={[
+                style={({ pressed }) => [
                   calendarStyles.scheduleTypeButton,
                   selected && calendarStyles.scheduleTypeButtonActive,
+                  pressed && calendarStyles.pressablePressed,
                 ]}
                 onPress={() => setSelectedDayType(option.id)}
               >
@@ -187,7 +187,7 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
                 >
                   {option.label}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             );
           })}
         </View>
@@ -222,33 +222,40 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
                   multiline
                 />
               </View>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => handleRemoveRow(selectedDayType, index)}
                 style={calendarStyles.scheduleEditRemove}
                 accessibilityRole="button"
                 accessibilityLabel="Remove entry"
+                android_ripple={{ color: '#fee2e2', borderless: true }}
               >
                 <Ionicons name="trash-outline" size={20} color="#dc2626" />
-              </TouchableOpacity>
+              </Pressable>
             </View>
           ))}
         </ScrollView>
 
         <View style={calendarStyles.scheduleEditorActions}>
-          <TouchableOpacity
+          <Pressable
             onPress={() => handleAddRow(selectedDayType)}
-            style={calendarStyles.scheduleActionButton}
+            style={({ pressed }) => [
+              calendarStyles.scheduleActionButton,
+              pressed && calendarStyles.pressablePressed,
+            ]}
           >
             <Ionicons name="add" size={18} color="#2563eb" />
             <Text style={calendarStyles.scheduleActionLabel}>Add entry</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </Pressable>
+          <Pressable
             onPress={() => handleResetDayType(selectedDayType)}
-            style={calendarStyles.scheduleActionButton}
+            style={({ pressed }) => [
+              calendarStyles.scheduleActionButton,
+              pressed && calendarStyles.pressablePressed,
+            ]}
           >
             <Ionicons name="refresh" size={18} color="#2563eb" />
             <Text style={calendarStyles.scheduleActionLabel}>Reset defaults</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     );
@@ -284,11 +291,12 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
             {tabs.map((tab) => {
               const selected = tab.id === activeTab;
               return (
-                <TouchableOpacity
+                <Pressable
                   key={tab.id}
-                  style={[
+                  style={({ pressed }) => [
                     calendarStyles.modalTabButton,
                     selected && calendarStyles.modalTabButtonActive,
+                    pressed && calendarStyles.pressablePressed,
                   ]}
                   onPress={() => setActiveTab(tab.id)}
                 >
@@ -300,7 +308,7 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
                   >
                     {tab.label}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </View>
@@ -316,22 +324,26 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
           </ScrollView>
 
           <View style={calendarStyles.modalFooter}>
-            <TouchableOpacity
+            <Pressable
               onPress={onRequestClose}
-              style={calendarStyles.modalSecondaryButton}
+              style={({ pressed }) => [
+                calendarStyles.modalSecondaryButton,
+                pressed && calendarStyles.pressablePressed,
+              ]}
             >
               <Text style={calendarStyles.modalSecondaryLabel}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               onPress={handleSave}
-              style={[
+              style={({ pressed }) => [
                 calendarStyles.modalPrimaryButton,
                 !hasChanges && calendarStyles.modalPrimaryButtonDisabled,
+                pressed && calendarStyles.pressablePressed,
               ]}
               disabled={!hasChanges}
             >
               <Text style={calendarStyles.modalPrimaryLabel}>Save changes</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </View>

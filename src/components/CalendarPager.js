@@ -27,21 +27,16 @@ const CalendarPager = () => {
     currentIndex,
     setCurrentIndex,
     appendNextDate,
-    handleInputChange,
-    handleAddTaskForDate,
-    toggleTaskCompletion,
-    removeTask,
     completeTask,
     isScheduleCompleted,
     markScheduleCompleted,
     resetScheduleCompletion,
     resetScheduleCompletionForDate,
-    getTasksForDate,
-    getInputValueForDate,
+    prependPreviousDate,
+    removeDate,
     getDayTypeForDate,
     setDayTypeForDate,
     currentDateEntry,
-    remainingTasks,
   } = useCalendarState(initialTasks);
 
   const [settingsVisible, setSettingsVisible] = useState(false);
@@ -86,17 +81,6 @@ const CalendarPager = () => {
   const { startTimer, clearTimer, timerForTask } =
     useTaskTimers(handleTimerComplete);
 
-  const handleStartTaskTimer = useCallback(
-    (dateKey, task, durationMinutes) =>
-      startTimer(task.id, durationMinutes, {
-        kind: 'task',
-        dateKey,
-        taskId: task.id,
-        title: task.title,
-      }),
-    [startTimer],
-  );
-
   const handleStartScheduleTimer = useCallback(
     (dateKey, scheduleId, timerId, durationMinutes, scheduleItem) => {
       const started = startTimer(timerId, durationMinutes, {
@@ -112,22 +96,6 @@ const CalendarPager = () => {
       return started;
     },
     [resetScheduleCompletion, startTimer],
-  );
-
-  const handleRemoveTask = useCallback(
-    (dateKey, taskId) => {
-      removeTask(dateKey, taskId);
-      clearTimer(taskId);
-    },
-    [removeTask, clearTimer],
-  );
-
-  const handleToggleTask = useCallback(
-    (dateKey, taskId) => {
-      toggleTaskCompletion(dateKey, taskId);
-      clearTimer(taskId);
-    },
-    [toggleTaskCompletion, clearTimer],
   );
 
   const clearScheduleTimersForDate = useCallback(
@@ -177,19 +145,22 @@ const CalendarPager = () => {
     }
   });
 
-  const activeDayType = currentDateEntry
-    ? getDayTypeForDate(currentDateEntry.key)
+  const currentDateKey = currentDateEntry?.key;
+  const activeDayType = currentDateKey
+    ? getDayTypeForDate(currentDateKey)
     : 'work';
-  const activeSchedule = currentDateEntry
+  const activeSchedule = currentDateKey
     ? schedules[activeDayType] ?? []
     : [];
   const totalBlocks = activeSchedule.length;
-  const completedBlocks = activeSchedule.filter((block) =>
-    isScheduleCompleted(
-      currentDateEntry.key,
-      buildScheduleId(activeDayType, block.time),
-    ),
-  ).length;
+  const completedBlocks = currentDateKey
+    ? activeSchedule.filter((block) =>
+        isScheduleCompleted(
+          currentDateKey,
+          buildScheduleId(activeDayType, block.time),
+        ),
+      ).length
+    : 0;
   const remainingBlocks = Math.max(totalBlocks - completedBlocks, 0);
 
   const headerSubtitle = currentDateEntry
@@ -200,6 +171,18 @@ const CalendarPager = () => {
       }`
     : 'Preparing your schedule...';
 
+  const handleAddPreviousDay = useCallback(() => {
+    prependPreviousDate();
+  }, [prependPreviousDate]);
+
+  const handleRemoveCurrentDay = useCallback(() => {
+    if (!currentDateEntry) {
+      return;
+    }
+    clearScheduleTimersForDate(currentDateEntry.key);
+    removeDate(currentDateEntry.key);
+  }, [clearScheduleTimersForDate, currentDateEntry, removeDate]);
+
   return (
     <View style={calendarStyles.container}>
       <KeyboardAvoidingView
@@ -209,6 +192,9 @@ const CalendarPager = () => {
           title="Tasker"
           subtitle={headerSubtitle}
           onPressSettings={() => setSettingsVisible(true)}
+          onAddPreviousDay={handleAddPreviousDay}
+          onRemoveCurrentDay={handleRemoveCurrentDay}
+          canRemoveCurrentDay={dates.length > 1}
         />
         <FlatList
           data={dates}
@@ -217,20 +203,14 @@ const CalendarPager = () => {
             <DayPage
               width={width}
               dateEntry={item}
-              tasks={getTasksForDate(item.key)}
-              inputValue={getInputValueForDate(item.key)}
               dayType={getDayTypeForDate(item.key)}
               schedule={schedules[getDayTypeForDate(item.key)] ?? []}
-              onInputChange={(value) => handleInputChange(item.key, value)}
-              onAddTask={() => handleAddTaskForDate(item.key)}
-              onToggleTask={(taskId) => handleToggleTask(item.key, taskId)}
-              onRemoveTask={(taskId) => handleRemoveTask(item.key, taskId)}
               onChangeDayType={(type) => handleDayTypeChange(item.key, type)}
-            onStartScheduleTimer={(scheduleId, timerId, duration, scheduleItem) =>
-              handleStartScheduleTimer(
-                item.key,
-                scheduleId,
-                timerId,
+              onStartScheduleTimer={(scheduleId, timerId, duration, scheduleItem) =>
+                handleStartScheduleTimer(
+                  item.key,
+                  scheduleId,
+                  timerId,
                   duration,
                   scheduleItem,
                 )
@@ -240,11 +220,11 @@ const CalendarPager = () => {
                 isScheduleCompleted(item.key, scheduleId)
               }
             />
-        )}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        nestedScrollEnabled
-        pagingEnabled
+          )}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled
+          pagingEnabled
           snapToAlignment="start"
           decelerationRate="fast"
           onEndReached={appendNextDate}
@@ -256,8 +236,6 @@ const CalendarPager = () => {
             offset: width * index,
             index,
           })}
-        
-          
         />
         <NotificationSettings
           visible={settingsVisible}

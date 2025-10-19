@@ -58,8 +58,25 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
       const lastDate = prevDates[prevDates.length - 1]?.date ?? new Date();
       const nextDate = addDays(lastDate, 1);
       const nextKey = dateKeyFromDate(nextDate);
+      if (prevDates.some((entry) => entry.key === nextKey)) {
+        return prevDates;
+      }
       ensureDateState(nextKey);
       return [...prevDates, { key: nextKey, date: nextDate }];
+    });
+  }, [ensureDateState]);
+
+  const prependPreviousDate = useCallback(() => {
+    setDates((prevDates) => {
+      const firstDate = prevDates[0]?.date ?? new Date();
+      const previousDate = addDays(firstDate, -1);
+      const previousKey = dateKeyFromDate(previousDate);
+      if (prevDates.some((entry) => entry.key === previousKey)) {
+        return prevDates;
+      }
+      ensureDateState(previousKey);
+      setCurrentIndex((prevIndex) => prevIndex + 1);
+      return [{ key: previousKey, date: previousDate }, ...prevDates];
     });
   }, [ensureDateState]);
 
@@ -177,10 +194,6 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
   }, [setScheduleCompletionByDate]);
 
   const currentDateEntry = dates[currentIndex] ?? dates[0];
-  const currentTasks = currentDateEntry
-    ? getTasksForDate(currentDateEntry.key)
-    : [];
-  const remainingTasks = currentTasks.filter((task) => !task.completed).length;
 
   const isScheduleCompleted = useCallback(
     (dateKey, scheduleId) =>
@@ -231,6 +244,56 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
     });
   }, []);
 
+  const removeDate = useCallback(
+    (dateKey) => {
+      setDates((prevDates) => {
+        if (prevDates.length <= 1) {
+          return prevDates;
+        }
+
+        const index = prevDates.findIndex((entry) => entry.key === dateKey);
+        if (index === -1) {
+          return prevDates;
+        }
+
+        const nextDates = prevDates.filter((entry) => entry.key !== dateKey);
+
+        setCurrentIndex((prevIndex) => {
+          if (prevIndex > index) {
+            return prevIndex - 1;
+          }
+          if (prevIndex === index) {
+            return Math.max(0, prevIndex - 1);
+          }
+          return prevIndex;
+        });
+
+        setTasksByDate((prev) => {
+          const { [dateKey]: _removed, ...rest } = prev;
+          return rest;
+        });
+
+        setInputValues((prev) => {
+          const { [dateKey]: _removed, ...rest } = prev;
+          return rest;
+        });
+
+        setDayTypeByDate((prev) => {
+          const { [dateKey]: _removed, ...rest } = prev;
+          return rest;
+        });
+
+        setScheduleCompletionByDate((prev) => {
+          const { [dateKey]: _removed, ...rest } = prev;
+          return rest;
+        });
+
+        return nextDates;
+      });
+    },
+    [],
+  );
+
   return {
     dates,
     currentIndex,
@@ -246,10 +309,11 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
     getDayTypeForDate,
     setDayTypeForDate,
     currentDateEntry,
-    remainingTasks,
     isScheduleCompleted,
     markScheduleCompleted,
     resetScheduleCompletion,
     resetScheduleCompletionForDate,
+    prependPreviousDate,
+    removeDate,
   };
 };
