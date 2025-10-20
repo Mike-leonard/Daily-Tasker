@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Switch,
@@ -47,7 +48,7 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
     useNotificationSettings();
   const { schedules, setSchedule } = useSchedules();
 
-  const { height: windowHeight } = useWindowDimensions();
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
 
   const [activeTab, setActiveTab] = useState('notifications');
   const [selectedDayType, setSelectedDayType] = useState('work');
@@ -151,18 +152,25 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
           </Text>
         )}
       </View>
-      <Switch
-        value={enabled}
-        onValueChange={handleToggle}
-        thumbColor={enabled ? '#2563eb' : '#f1f5f9'}
-        trackColor={{ false: '#cbd5f5', true: '#93c5fd' }}
-        ios_backgroundColor="#cbd5f5"
-      />
+      <View style={calendarStyles.switchWrapper}>
+        <Switch
+          value={enabled}
+          onValueChange={handleToggle}
+          thumbColor={enabled ? '#2563eb' : '#f1f5f9'}
+          trackColor={{ false: '#cbd5f5', true: '#93c5fd' }}
+          ios_backgroundColor="#cbd5f5"
+        />
+      </View>
     </View>
   );
 
   const renderScheduleEditor = () => {
     const current = drafts[selectedDayType] ?? [];
+
+    const scheduleListMaxHeight = Math.max(
+      280,
+      Math.min(windowHeight * 0.6, 520),
+    );
 
     return (
       <View style={calendarStyles.scheduleEditorSection}>
@@ -193,8 +201,14 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
         </View>
 
         <ScrollView
-          style={calendarStyles.scheduleEditorList}
+          style={[
+            calendarStyles.scheduleEditorList,
+            { maxHeight: scheduleListMaxHeight },
+          ]}
           contentContainerStyle={calendarStyles.scheduleEditorContent}
+          nestedScrollEnabled
+          showsVerticalScrollIndicator={Platform.OS === 'web'}
+          keyboardShouldPersistTaps="handled"
         >
           {current.length === 0 && (
             <Text style={calendarStyles.settingSubtitle}>
@@ -202,11 +216,16 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
             </Text>
           )}
           {current.map((item, index) => (
-            <View key={`${selectedDayType}-${index}`} style={calendarStyles.scheduleEditRow}>
+            <View
+              key={`${selectedDayType}-${index}`}
+              style={calendarStyles.scheduleEditRow}
+            >
               <View style={calendarStyles.scheduleEditInputs}>
                 <TextInput
                   value={item.time}
-                  onChangeText={(value) => updateDraft(selectedDayType, index, 'time', value)}
+                  onChangeText={(value) =>
+                    updateDraft(selectedDayType, index, 'time', value)
+                  }
                   placeholder="08:00 – 09:00"
                   placeholderTextColor="#94a3b8"
                   style={calendarStyles.scheduleEditTime}
@@ -272,7 +291,11 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
         <View
           style={[
             calendarStyles.modalCard,
-            { maxHeight: windowHeight * 0.92 },
+            {
+              maxHeight: windowHeight * 0.92,
+              width: windowWidth,
+              minHeight: Math.min(windowHeight * 0.8, 640),
+            },
           ]}
         >
           <View style={calendarStyles.modalHeader}>
@@ -313,15 +336,11 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
             })}
           </View>
 
-          <ScrollView
-            style={calendarStyles.modalScroll}
-            contentContainerStyle={calendarStyles.modalScrollContent}
-            keyboardShouldPersistTaps="handled"
-          >
+          <View style={calendarStyles.modalBody}>
             {activeTab === 'notifications'
               ? renderNotificationSettings()
               : renderScheduleEditor()}
-          </ScrollView>
+          </View>
 
           <View style={calendarStyles.modalFooter}>
             <Pressable

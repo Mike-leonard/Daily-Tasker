@@ -60,15 +60,17 @@ export const calendarStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.35)',
     justifyContent: 'flex-end',
+    alignItems: 'stretch',
   },
   modalCard: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 32,
     maxHeight: '92vh',
+    alignSelf: 'stretch',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -89,10 +91,8 @@ export const calendarStyles = StyleSheet.create({
     padding: 4,
     marginBottom: 20,
   },
-  modalScroll: {
+  modalBody: {
     flex: 1,
-  },
-  modalScrollContent: {
     paddingBottom: 20,
   },
   modalTabButton: {
@@ -119,10 +119,17 @@ export const calendarStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingVertical: 12,
   },
   settingCopy: {
     flex: 1,
     marginRight: 12,
+  },
+  switchWrapper: {
+    paddingLeft: 12,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    minWidth: 64,
   },
   settingTitle: {
     fontSize: 16,
@@ -173,7 +180,10 @@ export const calendarStyles = StyleSheet.create({
     fontWeight: '600',
   },
   scheduleEditorSection: {
-    flex: 1,
+    width: '100%',
+    marginTop: 12,
+    flexGrow: 1,
+    flexShrink: 1,
   },
   scheduleTypeTabs: {
     flexDirection: 'row',
@@ -201,11 +211,11 @@ export const calendarStyles = StyleSheet.create({
     color: '#fff',
   },
   scheduleEditorList: {
-    flex: 1,
+    width: '100%',
     marginBottom: 16,
   },
   scheduleEditorContent: {
-    paddingBottom: 8,
+    paddingBottom: 16,
     gap: 12,
   },
   scheduleEditRow: {
@@ -217,6 +227,7 @@ export const calendarStyles = StyleSheet.create({
     padding: 12,
     backgroundColor: '#fff',
     gap: 12,
+    marginBottom: 12,
   },
   scheduleEditInputs: {
     flex: 1,
