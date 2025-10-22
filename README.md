@@ -34,8 +34,11 @@ The schedule data now syncs through Firebase Realtime Database and is shared acr
 
 1. [Create a Firebase project](https://console.firebase.google.com/) and add a Realtime Database.
 2. Copy the web app credentials from **Project Settings → General → Your apps**.
-3. Update `src/config/firebaseConfig.js` with the values from the Firebase console.<br>
-   If you prefer to keep secrets out of source control, create `src/config/firebaseConfig.local.js`, copy the exported object, and switch the import in `src/lib/firebase.js` to use it.
+3. Create a `.env` file (use `.env.example` as a template) and paste the Firebase values:
+   ```bash
+   cp .env.example .env
+   ```
+   These values are injected into the Expo config at build time and read from `Constants.expoConfig.extra.firebase`.
 4. Ensure your Realtime Database has rules that allow the app read/write access. During development you can use:
    ```json
    {
@@ -59,7 +62,7 @@ Schedule templates live under the `scheduleDefinitions` node so every device ref
 
 - `App.js` contains the main React Native component tree and task logic.
 - `index.js` registers the root component for Expo and native builds.
-- `app.json` configures the Expo app metadata.
+- `app.config.js` / `app.json` configure the Expo app metadata and load environment variables.
 - `metro.config.js` and `babel.config.js` maintain bundler/transpiler defaults compatible with Expo SDK 51.
 - `assets/` stores placeholder icons and splash assets; replace these with your own branding as needed.
 

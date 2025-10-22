@@ -15,6 +15,7 @@ dist
 *.log
 *.lock
 *.tmp
+.env
 
 # local configuration overrides
 src/config/firebaseConfig.local.js

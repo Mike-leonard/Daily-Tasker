@@ -1,16 +1,58 @@
-export const firebaseConfig = {
-  apiKey: "AIzaSyAeYbl2RtAD-k7-bb4Y0_MS87MvW7ZyUqo",
-  authDomain: "tasker-c793c.firebaseapp.com",
-  databaseURL: "https://tasker-c793c-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "tasker-c793c",
-  storageBucket: "tasker-c793c.firebasestorage.app",
-  messagingSenderId: "531512715603",
-  appId: "1:531512715603:web:85a8b7b2f3a973839799a6",
+import Constants from 'expo-constants';
+
+const manifestExtras =
+  Constants.expoConfig?.extra ?? Constants.manifest?.extra ?? {};
+const firebaseExtras = manifestExtras.firebase ?? {};
+
+const envFallback = {
+  apiKey:
+    process.env.EXPO_PUBLIC_FIREBASE_API_KEY ??
+    process.env.FIREBASE_API_KEY ??
+    '',
+  authDomain:
+    process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ??
+    process.env.FIREBASE_AUTH_DOMAIN ??
+    '',
+  databaseURL:
+    process.env.EXPO_PUBLIC_FIREBASE_DATABASE_URL ??
+    process.env.FIREBASE_DATABASE_URL ??
+    '',
+  projectId:
+    process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ??
+    process.env.FIREBASE_PROJECT_ID ??
+    '',
+  storageBucket:
+    process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET ??
+    process.env.FIREBASE_STORAGE_BUCKET ??
+    '',
+  messagingSenderId:
+    process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ??
+    process.env.FIREBASE_MESSAGING_SENDER_ID ??
+    '',
+  appId:
+    process.env.EXPO_PUBLIC_FIREBASE_APP_ID ??
+    process.env.FIREBASE_APP_ID ??
+    '',
 };
 
-/**
- * Replace the placeholder values above with the credentials from your
- * Firebase project settings page. If you do not want to commit these
- * credentials, create a copy of this file named `firebaseConfig.local.js`
- * and update `src/lib/firebase.js` to prefer that file instead.
- */
+export const firebaseConfig = {
+  apiKey: firebaseExtras.apiKey ?? envFallback.apiKey,
+  authDomain: firebaseExtras.authDomain ?? envFallback.authDomain,
+  databaseURL: firebaseExtras.databaseURL ?? envFallback.databaseURL,
+  projectId: firebaseExtras.projectId ?? envFallback.projectId,
+  storageBucket: firebaseExtras.storageBucket ?? envFallback.storageBucket,
+  messagingSenderId:
+    firebaseExtras.messagingSenderId ?? envFallback.messagingSenderId,
+  appId: firebaseExtras.appId ?? envFallback.appId,
+};
+
+export const isFirebaseConfigValid = Object.values(firebaseConfig).every(
+  (value) => typeof value === 'string' && value.length > 0,
+);
+
+if (!isFirebaseConfigValid) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    '[firebase] Missing configuration. Ensure environment variables are set in .env/.env.local or supplied via Expo extra.',
+  );
+}

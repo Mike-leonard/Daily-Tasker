@@ -28,6 +28,7 @@
     "@babel/core": "^7.24.0",
     "eslint": "^8.57.0",
     "eslint-config-universe": "^12.1.0",
+    "dotenv": "^16.4.5",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3"
   },
