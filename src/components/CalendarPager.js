@@ -1,10 +1,10 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
   useWindowDimensions,
-  StyleSheet,
   View,
 } from 'react-native';
 
@@ -14,7 +14,7 @@ import { useTaskTimers } from '../hooks/useTaskTimers';
 import { useNotificationSettings } from '../context/NotificationContext';
 import { useSchedules } from '../context/ScheduleContext';
 import { calendarStyles } from '../styles/styles';
-import { formatLongDate } from '../utils/date';
+import { addDays, dateKeyFromDate, formatLongDate } from '../utils/date';
 import { buildScheduleId, buildScheduleTimerId } from '../utils/schedule';
 import CalendarHeader from './CalendarHeader';
 import DayPage from './DayPage';
@@ -32,6 +32,7 @@ const CalendarPager = () => {
     markScheduleCompleted,
     resetScheduleCompletion,
     resetScheduleCompletionForDate,
+    replaceScheduleCompletionForDate,
     prependPreviousDate,
     removeDate,
     getDayTypeForDate,
@@ -41,7 +42,13 @@ const CalendarPager = () => {
 
   const [settingsVisible, setSettingsVisible] = useState(false);
   const { sendNotification } = useNotificationSettings();
-  const { schedules } = useSchedules();
+  const {
+    schedules,
+    recordScheduleCompletion,
+    clearScheduleCompletion,
+    clearScheduleCompletionForDate,
+    observeScheduleCompletions,
+  } = useSchedules();
 
   const getDateLabel = useCallback(
     (dateKey) => {
@@ -53,7 +60,16 @@ const CalendarPager = () => {
 
   const handleTimerComplete = useCallback(
     (timerId, meta) => {
-      const { kind, dateKey, scheduleId, title, time } = meta ?? {};
+      const {
+        kind,
+        dateKey,
+        scheduleId,
+        title,
+        time,
+        dayType,
+        scheduleIndex,
+        dateValue,
+      } = meta ?? {};
       const dateLabel = dateKey ? getDateLabel(dateKey) : undefined;
 
       if (kind === 'task' && dateKey) {
@@ -66,36 +82,70 @@ const CalendarPager = () => {
         return;
       }
 
-      if (kind === 'schedule' && dateKey && scheduleId) {
+      if (
+        kind === 'schedule' &&
+        dateKey &&
+        scheduleId &&
+        dayType &&
+        Number.isInteger(scheduleIndex)
+      ) {
         markScheduleCompleted(dateKey, scheduleId);
+        recordScheduleCompletion(
+          dateKey,
+          dayType,
+          scheduleIndex,
+          meta?.scheduleItem,
+          dateValue,
+        );
         sendNotification({
           title: 'Schedule block done',
-          body: `${title ?? 'Block'}${time ? ` (${time})` : ''} completed${dateLabel ? ` • ${dateLabel}` : ''
-            }.`,
+          body: `${title ?? 'Block'}${time ? ` (${time})` : ''} completed${
+            dateLabel ? ` • ${dateLabel}` : ''
+          }.`,
         });
       }
     },
-    [completeTask, markScheduleCompleted, getDateLabel, sendNotification],
+    [
+      completeTask,
+      markScheduleCompleted,
+      recordScheduleCompletion,
+      getDateLabel,
+      sendNotification,
+    ],
   );
 
   const { startTimer, clearTimer, timerForTask } =
     useTaskTimers(handleTimerComplete);
 
   const handleStartScheduleTimer = useCallback(
-    (dateKey, scheduleId, timerId, durationMinutes, scheduleItem) => {
+    ({
+      dateKey,
+      dayType,
+      scheduleId,
+      scheduleIndex,
+      timerId,
+      durationMinutes,
+      scheduleItem,
+      dateValue,
+    }) => {
       const started = startTimer(timerId, durationMinutes, {
         kind: 'schedule',
         dateKey,
+        dayType,
         scheduleId,
+        scheduleIndex,
         title: scheduleItem?.activity,
         time: scheduleItem?.time,
+        scheduleItem,
+        dateValue,
       });
       if (started) {
         resetScheduleCompletion(dateKey, scheduleId);
+        clearScheduleCompletion(dateKey, dayType, scheduleIndex, dateValue);
       }
       return started;
     },
-    [resetScheduleCompletion, startTimer],
+    [clearScheduleCompletion, resetScheduleCompletion, startTimer],
   );
 
   const clearScheduleTimersForDate = useCallback(
@@ -118,10 +168,17 @@ const CalendarPager = () => {
         if (currentType === dayType) {
           clearScheduleTimersForDate(entry.key);
           resetScheduleCompletionForDate(entry.key);
+          clearScheduleCompletionForDate(entry.key, entry.date, dayType);
         }
       });
     },
-    [dates, getDayTypeForDate, clearScheduleTimersForDate, resetScheduleCompletionForDate],
+    [
+      dates,
+      getDayTypeForDate,
+      clearScheduleTimersForDate,
+      resetScheduleCompletionForDate,
+      clearScheduleCompletionForDate,
+    ],
   );
 
   const handleDayTypeChange = useCallback(
@@ -131,10 +188,38 @@ const CalendarPager = () => {
         return;
       }
 
+      const currentSchedule = schedules[currentType] ?? [];
+      const hasCompletedBlock = currentSchedule.some((item) =>
+        isScheduleCompleted(
+          dateKey,
+          buildScheduleId(currentType, item.time),
+        ),
+      );
+
+      if (hasCompletedBlock) {
+        Alert.alert(
+          'Cannot switch plan',
+          'This day already has completed blocks. Clear the completions before changing the day type.',
+        );
+        return;
+      }
+
+      const entry = dates.find((item) => item.key === dateKey);
+      const dateValue = entry?.date;
+
       clearScheduleTimersForDate(dateKey);
+      clearScheduleCompletionForDate(dateKey, dateValue, currentType);
       setDayTypeForDate(dateKey, nextType);
     },
-    [getDayTypeForDate, clearScheduleTimersForDate, setDayTypeForDate],
+    [
+      dates,
+      schedules,
+      getDayTypeForDate,
+      clearScheduleTimersForDate,
+      clearScheduleCompletionForDate,
+      isScheduleCompleted,
+      setDayTypeForDate,
+    ],
   );
 
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 60 });
@@ -145,6 +230,7 @@ const CalendarPager = () => {
     }
   });
 
+  const todayKey = useMemo(() => dateKeyFromDate(new Date()), []);
   const currentDateKey = currentDateEntry?.key;
   const activeDayType = currentDateKey
     ? getDayTypeForDate(currentDateKey)
@@ -180,8 +266,120 @@ const CalendarPager = () => {
       return;
     }
     clearScheduleTimersForDate(currentDateEntry.key);
+    clearScheduleCompletionForDate(
+      currentDateEntry.key,
+      currentDateEntry.date,
+    );
     removeDate(currentDateEntry.key);
-  }, [clearScheduleTimersForDate, currentDateEntry, removeDate]);
+  }, [
+    clearScheduleCompletionForDate,
+    clearScheduleTimersForDate,
+    currentDateEntry,
+    removeDate,
+  ]);
+
+  useEffect(() => {
+    const unsubscribers = dates.map((entry) =>
+      observeScheduleCompletions(entry.key, entry.date, (snapshot) => {
+        const raw = snapshot ?? {};
+        const completionMap = {};
+
+        Object.entries(raw).forEach(([dayType, dayEntries]) => {
+          const template = schedules[dayType] ?? [];
+          Object.entries(dayEntries ?? {}).forEach(([indexKey, value]) => {
+            if (!value || value.status !== true) {
+              return;
+            }
+            const index = Number(indexKey);
+            if (!Number.isInteger(index) || index < 0) {
+              return;
+            }
+            const scheduleItem = template[index];
+            if (!scheduleItem) {
+              return;
+            }
+            const scheduleId = buildScheduleId(dayType, scheduleItem.time);
+            if (scheduleId) {
+              completionMap[scheduleId] = true;
+            }
+          });
+        });
+
+        replaceScheduleCompletionForDate(entry.key, completionMap);
+      }),
+    );
+
+    return () => {
+      unsubscribers.forEach((unsubscribe) => {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      });
+    };
+  }, [
+    dates,
+    observeScheduleCompletions,
+    replaceScheduleCompletionForDate,
+    schedules,
+  ]);
+
+  useEffect(() => {
+    if (dates.length === 0) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const fetchSnapshotOnce = (key, dateValue) =>
+      new Promise((resolve) => {
+        let unsubscribe = () => {};
+        unsubscribe = observeScheduleCompletions(key, dateValue, (snapshot) => {
+          unsubscribe();
+          resolve(snapshot ?? null);
+        });
+      });
+
+    const scanHistory = async () => {
+      let cursorDate = addDays(dates[0].date, -1);
+
+      for (let steps = 0; steps < 60 && !isCancelled; steps += 1) {
+        const cursorKey = dateKeyFromDate(cursorDate);
+
+        if (dates.some((entry) => entry.key === cursorKey)) {
+          cursorDate = addDays(cursorDate, -1);
+          continue;
+        }
+
+        const snapshot = await fetchSnapshotOnce(cursorKey, cursorDate);
+        if (isCancelled) {
+          return;
+        }
+
+        if (!snapshot) {
+          cursorDate = addDays(cursorDate, -1);
+          continue;
+        }
+
+        const hasHistoricalCompletion = Object.values(snapshot).some(
+          (dayEntries) =>
+            Object.values(dayEntries ?? {}).some((entry) => entry?.status === true),
+        );
+
+        if (hasHistoricalCompletion) {
+          prependPreviousDate();
+          return;
+        }
+
+        cursorDate = addDays(cursorDate, -1);
+      }
+    };
+
+    scanHistory();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [dates, observeScheduleCompletions, prependPreviousDate]);
 
   return (
     <View style={calendarStyles.container}>
@@ -199,28 +397,41 @@ const CalendarPager = () => {
         <FlatList
           data={dates}
           keyExtractor={(item) => item.key}
-          renderItem={({ item }) => (
-            <DayPage
-              width={width}
-              dateEntry={item}
-              dayType={getDayTypeForDate(item.key)}
-              schedule={schedules[getDayTypeForDate(item.key)] ?? []}
-              onChangeDayType={(type) => handleDayTypeChange(item.key, type)}
-              onStartScheduleTimer={(scheduleId, timerId, duration, scheduleItem) =>
-                handleStartScheduleTimer(
-                  item.key,
+          renderItem={({ item }) => {
+            const dayType = getDayTypeForDate(item.key);
+            return (
+              <DayPage
+                width={width}
+                dateEntry={item}
+                dayType={dayType}
+                schedule={schedules[dayType] ?? []}
+                isActiveDay={item.key === todayKey}
+                onChangeDayType={(type) => handleDayTypeChange(item.key, type)}
+                onStartScheduleTimer={({
                   scheduleId,
+                  scheduleIndex,
                   timerId,
-                  duration,
+                  durationMinutes,
                   scheduleItem,
-                )
-              }
-              getTimer={timerForTask}
-              isScheduleCompleted={(scheduleId) =>
-                isScheduleCompleted(item.key, scheduleId)
-              }
-            />
-          )}
+                }) =>
+                  handleStartScheduleTimer({
+                    dateKey: item.key,
+                    dayType,
+                    scheduleId,
+                    scheduleIndex,
+                    timerId,
+                    durationMinutes,
+                    scheduleItem,
+                    dateValue: item.date,
+                  })
+                }
+                getTimer={timerForTask}
+                isScheduleCompleted={(scheduleId) =>
+                  isScheduleCompleted(item.key, scheduleId)
+                }
+              />
+            );
+          }}
           horizontal
           showsHorizontalScrollIndicator={false}
           nestedScrollEnabled
@@ -242,10 +453,8 @@ const CalendarPager = () => {
           onRequestClose={() => setSettingsVisible(false)}
           onSchedulesUpdated={resetSchedulesForDayType}
         />
-        </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
     </View>
-
-
   );
 };
 

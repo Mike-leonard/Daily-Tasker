@@ -442,6 +442,9 @@ export const dayStyles = StyleSheet.create({
   scheduleButtonCompleted: {
     backgroundColor: '#9ca3af',
   },
+  scheduleButtonDisabled: {
+    backgroundColor: '#cbd5f5',
+  },
   scheduleButtonText: {
     color: '#fff',
     fontSize: 12,
@@ -449,6 +452,9 @@ export const dayStyles = StyleSheet.create({
   },
   scheduleButtonTextCompleted: {
     color: '#f8fafc',
+  },
+  scheduleButtonTextDisabled: {
+    color: '#64748b',
   },
   tasksSection: {
     marginTop: 24,

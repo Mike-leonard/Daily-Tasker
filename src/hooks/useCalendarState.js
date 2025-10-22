@@ -244,6 +244,18 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
     });
   }, []);
 
+  const replaceScheduleCompletionForDate = useCallback((dateKey, completionMap) => {
+    setScheduleCompletionByDate((prev) => {
+      if (!dateKey) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [dateKey]: completionMap ?? {},
+      };
+    });
+  }, []);
+
   const removeDate = useCallback(
     (dateKey) => {
       setDates((prevDates) => {
@@ -313,6 +325,7 @@ export const useCalendarState = (initialTasks = [], initialDayCount = INITIAL_DA
     markScheduleCompleted,
     resetScheduleCompletion,
     resetScheduleCompletionForDate,
+    replaceScheduleCompletionForDate,
     prependPreviousDate,
     removeDate,
   };

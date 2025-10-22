@@ -14,6 +14,7 @@ A simple task management app built with React Native (Expo) and JavaScript. The 
    ```bash
    npm install
    ```
+   This pulls in the Firebase SDK that backs schedule persistence.
 2. Start the development server:
    ```bash
    npm run start
@@ -26,6 +27,33 @@ A simple task management app built with React Native (Expo) and JavaScript. The 
    npm run ios
    npm run web
    ```
+
+## Firebase Setup
+
+The schedule data now syncs through Firebase Realtime Database and is shared across every device.
+
+1. [Create a Firebase project](https://console.firebase.google.com/) and add a Realtime Database.
+2. Copy the web app credentials from **Project Settings → General → Your apps**.
+3. Update `src/config/firebaseConfig.js` with the values from the Firebase console.<br>
+   If you prefer to keep secrets out of source control, create `src/config/firebaseConfig.local.js`, copy the exported object, and switch the import in `src/lib/firebase.js` to use it.
+4. Ensure your Realtime Database has rules that allow the app read/write access. During development you can use:
+   ```json
+   {
+     "rules": {
+       "scheduleDefinitions": {
+         ".read": true,
+         ".write": true
+       },
+       "scheduleTemplates": {
+         ".read": true,
+         ".write": true
+       }
+     }
+   }
+   ```
+   Lock the rules down (for example with Firebase Auth) before shipping to production.
+
+Schedule templates live under the `scheduleDefinitions` node so every device references the same work/off day plans. When a focus timer finishes successfully, the app writes to `scheduleTemplates/<MonthName><Day>_<Year>/<dayType>/<index>` with `activity`, `time`, and `status: true`. On launch those status flags hydrate the UI, so completed blocks stay marked done across refreshes. For example, completing the first off-day block on October 21, 2025 produces `/scheduleTemplates/October21_2025/off/0`. Local AsyncStorage caching still keeps the UI responsive offline.
 
 ## Project Structure
 
@@ -41,6 +69,6 @@ Run `npm run lint` to analyze the project with ESLint. The configuration leverag
 
 ## Next Steps Ideas
 
-- Persist tasks with AsyncStorage or a backend API.
+- Wire up Firebase Authentication so each user syncs to a private schedule path.
 - Add due dates, priority tags, and filters.
 - Explore Expo Router or React Navigation for multi-screen workflows.

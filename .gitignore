@@ -16,6 +16,9 @@ dist
 *.lock
 *.tmp
 
+# local configuration overrides
+src/config/firebaseConfig.local.js
+
 # macOS
 .DS_Store
 

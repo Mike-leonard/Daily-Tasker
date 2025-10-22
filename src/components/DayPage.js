@@ -36,6 +36,7 @@ const DayPage = ({
   onStartScheduleTimer = () => true,
   getTimer = () => undefined,
   isScheduleCompleted = () => false,
+  isActiveDay = false,
   width,
 }) => {
   const showSchedule = schedule.length > 0;
@@ -68,11 +69,20 @@ const DayPage = ({
 
   const handleScheduleTimerStart = (
     scheduleId,
+    scheduleIndex,
     timerId,
     durationMinutes,
     completed,
     scheduleItem,
   ) => {
+    if (!isActiveDay) {
+      Alert.alert(
+        'Timer unavailable',
+        'You can only run focus timers for today.',
+      );
+      return;
+    }
+
     if (completed) {
       Alert.alert(
         'Already completed',
@@ -91,12 +101,13 @@ const DayPage = ({
     }
 
     if (Number.isFinite(durationMinutes) && durationMinutes > 0) {
-      const success = onStartScheduleTimer(
+      const success = onStartScheduleTimer({
         scheduleId,
+        scheduleIndex,
         timerId,
         durationMinutes,
         scheduleItem,
-      );
+      });
       if (!success) {
         showTimerBusyAlert();
       }
@@ -104,12 +115,13 @@ const DayPage = ({
     }
 
     promptForDuration((duration) => {
-      const success = onStartScheduleTimer(
+      const success = onStartScheduleTimer({
         scheduleId,
+        scheduleIndex,
         timerId,
-        duration,
+        durationMinutes: duration,
         scheduleItem,
-      );
+      });
       if (!success) {
         showTimerBusyAlert();
       }
@@ -178,7 +190,7 @@ const DayPage = ({
             <Text style={dayStyles.scheduleHeading}>
               {dayType === 'work' ? 'Work Day Plan' : 'Off Day Plan'}
             </Text>
-            {schedule.map((item) => {
+            {schedule.map((item, index) => {
               const scheduleId = buildScheduleId(dayType, item.time);
               const timerId = buildScheduleTimerId(dateEntry.key, scheduleId);
               const timer = getTimer(timerId);
@@ -189,7 +201,9 @@ const DayPage = ({
               const completed = isScheduleCompleted(scheduleId);
               const durationMinutes = extractDurationMinutes(item.time);
               const durationLabel = formatMinutesToLabel(durationMinutes);
-              const buttonLabel = completed
+              const buttonLabel = !isActiveDay
+                ? 'Today only'
+                : completed
                 ? 'Done'
                 : timerRunning
                 ? timerLabel ?? 'Running'
@@ -221,17 +235,19 @@ const DayPage = ({
                       onPress={() =>
                         handleScheduleTimerStart(
                           scheduleId,
+                          index,
                           timerId,
                           durationMinutes,
                           completed,
                           item,
                         )
                       }
-                      disabled={completed}
+                      disabled={completed || !isActiveDay}
                       style={[
                         dayStyles.scheduleButton,
                         timerRunning && dayStyles.scheduleButtonRunning,
                         completed && dayStyles.scheduleButtonCompleted,
+                        !isActiveDay && dayStyles.scheduleButtonDisabled,
                       ]}
                       accessibilityRole="button"
                       accessibilityLabel={`Start focus timer for ${item.activity}`}
@@ -240,6 +256,7 @@ const DayPage = ({
                         style={[
                           dayStyles.scheduleButtonText,
                           completed && dayStyles.scheduleButtonTextCompleted,
+                          !isActiveDay && dayStyles.scheduleButtonTextDisabled,
                         ]}
                       >
                         {buttonLabel}
