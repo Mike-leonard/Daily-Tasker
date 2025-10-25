@@ -1,4 +1,18 @@
-export const buildScheduleId = (dayType, time) => `${dayType}::${time}`;
+const getIdentifier = (itemOrId) => {
+  if (!itemOrId) {
+    return '';
+  }
+  if (typeof itemOrId === 'string') {
+    return itemOrId;
+  }
+  if (typeof itemOrId === 'object') {
+    return itemOrId.id ?? itemOrId.time ?? '';
+  }
+  return String(itemOrId);
+};
+
+export const buildScheduleId = (dayType, itemOrId) =>
+  `${dayType}::${getIdentifier(itemOrId)}`;
 
 export const buildScheduleTimerId = (dateKey, scheduleId) =>
   `schedule-${dateKey}-${scheduleId}`;

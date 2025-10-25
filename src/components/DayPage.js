@@ -191,7 +191,7 @@ const DayPage = ({
               {dayType === 'work' ? 'Work Day Plan' : 'Off Day Plan'}
             </Text>
             {schedule.map((item, index) => {
-              const scheduleId = buildScheduleId(dayType, item.time);
+              const scheduleId = buildScheduleId(dayType, item.id ?? item.time);
               const timerId = buildScheduleTimerId(dateEntry.key, scheduleId);
               const timer = getTimer(timerId);
               const timerRunning = Boolean(timer?.isRunning);
@@ -213,7 +213,7 @@ const DayPage = ({
 
               return (
                 <View
-                  key={`${item.time}-${item.activity}`}
+                  key={item.id ?? `${item.time}-${item.activity}`}
                   style={[
                     dayStyles.scheduleRow,
                     completed && dayStyles.scheduleRowCompleted,

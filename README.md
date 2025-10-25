@@ -63,6 +63,7 @@ Schedule templates live under the `scheduleDefinitions` node so every device ref
 - `App.js` contains the main React Native component tree and task logic.
 - `index.js` registers the root component for Expo and native builds.
 - `app.config.js` / `app.json` configure the Expo app metadata and load environment variables.
+- `src/components/DashboardModal.js` renders the progress dashboard, summarising completed schedule hours per month and task.
 - `metro.config.js` and `babel.config.js` maintain bundler/transpiler defaults compatible with Expo SDK 51.
 - `assets/` stores placeholder icons and splash assets; replace these with your own branding as needed.
 

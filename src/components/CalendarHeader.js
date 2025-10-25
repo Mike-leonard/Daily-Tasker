@@ -6,6 +6,7 @@ import { calendarStyles } from '../styles/styles';
 const CalendarHeader = ({
   title,
   subtitle,
+  onPressDashboard,
   onPressSettings,
   onAddPreviousDay,
   onRemoveCurrentDay,
@@ -51,6 +52,20 @@ const CalendarHeader = ({
               size={20}
               color={canRemoveCurrentDay ? '#0f172a' : '#94a3b8'}
             />
+          </Pressable>
+        ) : null}
+        {onPressDashboard ? (
+          <Pressable
+            onPress={onPressDashboard}
+            style={({ pressed }) => [
+              calendarStyles.headerButton,
+              pressed && calendarStyles.pressablePressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Open progress dashboard"
+            hitSlop={8}
+          >
+            <Ionicons name="stats-chart-outline" size={20} color="\#0f172a" />
           </Pressable>
         ) : null}
         <Pressable

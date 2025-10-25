@@ -1,4 +1,4 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   Modal,
   Platform,
@@ -8,24 +8,25 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
-import { useEffect, useMemo, useState } from 'react';
-import { useWindowDimensions } from 'react-native';
+} from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { useWindowDimensions } from "react-native";
 
-import { calendarStyles } from '../styles/styles';
-import { useNotificationSettings } from '../context/NotificationContext';
-import { useSchedules } from '../context/ScheduleContext';
-import { offDaySchedule } from '../constants/offDaySchedule';
-import { workDaySchedule } from '../constants/workDaySchedule';
+import { calendarStyles } from "../styles/styles";
+import { useNotificationSettings } from "../context/NotificationContext";
+import { useSchedules } from "../context/ScheduleContext";
+import { offDaySchedule } from "../constants/offDaySchedule";
+import { workDaySchedule } from "../constants/workDaySchedule";
+import { createScheduleItemId } from "../utils/id";
 
 const tabs = [
-  { id: 'notifications', label: 'Notifications' },
-  { id: 'schedules', label: 'Schedules' },
+  { id: "notifications", label: "Notifications" },
+  { id: "schedules", label: "Schedules" },
 ];
 
 const dayTypeOptions = [
-  { id: 'work', label: 'Work Day' },
-  { id: 'off', label: 'Off Day' },
+  { id: "work", label: "Work Day" },
+  { id: "off", label: "Off Day" },
 ];
 
 const defaultSchedulesByType = {
@@ -38,9 +39,13 @@ const cloneSchedules = (schedules) => ({
   off: (schedules.off ?? []).map((item) => ({ ...item })),
 });
 
-const ensureRow = (item = {}) => ({
-  time: item.time ?? '',
-  activity: item.activity ?? '',
+const ensureRow = (item = {}, dayType = "work") => ({
+  id:
+    typeof item.id === "string" && item.id.trim().length > 0
+      ? item.id
+      : createScheduleItemId(dayType),
+  time: item.time ?? "",
+  activity: item.activity ?? "",
 });
 
 const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) => {
@@ -50,8 +55,8 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
 
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
 
-  const [activeTab, setActiveTab] = useState('notifications');
-  const [selectedDayType, setSelectedDayType] = useState('work');
+  const [activeTab, setActiveTab] = useState("notifications");
+  const [selectedDayType, setSelectedDayType] = useState("work");
   const [drafts, setDrafts] = useState(() => cloneSchedules(schedules));
   const [dirtyMap, setDirtyMap] = useState({ work: false, off: false });
   const hasChanges = dirtyMap.work || dirtyMap.off;
@@ -59,8 +64,8 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
   useEffect(() => {
     if (visible) {
       setDrafts(cloneSchedules(schedules));
-      setActiveTab('notifications');
-      setSelectedDayType('work');
+      setActiveTab("notifications");
+      setSelectedDayType("work");
       setDirtyMap({ work: false, off: false });
     }
   }, [visible, schedules]);
@@ -76,7 +81,7 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
     setDrafts((prev) => {
       const next = cloneSchedules(prev);
       if (!next[dayType][index]) {
-        next[dayType][index] = ensureRow();
+        next[dayType][index] = ensureRow({}, dayType);
       }
       next[dayType][index] = {
         ...next[dayType][index],
@@ -90,7 +95,10 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
   const handleAddRow = (dayType) => {
     setDrafts((prev) => {
       const next = cloneSchedules(prev);
-      next[dayType] = [...next[dayType], ensureRow({ time: '', activity: '' })];
+      next[dayType] = [
+        ...next[dayType],
+        ensureRow({ time: "", activity: "" }, dayType),
+      ];
       return next;
     });
     setDirtyMap((prev) => ({ ...prev, [dayType]: true }));
@@ -117,10 +125,10 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
   const sanitizedDraft = useMemo(
     () => ({
       work: drafts.work
-        .map(ensureRow)
+        .map((item) => ensureRow(item, "work"))
         .filter((item) => item.time.trim() && item.activity.trim()),
       off: drafts.off
-        .map(ensureRow)
+        .map((item) => ensureRow(item, "off"))
         .filter((item) => item.time.trim() && item.activity.trim()),
     }),
     [drafts],
@@ -128,12 +136,12 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
 
   const handleSave = () => {
     if (dirtyMap.work) {
-      setSchedule('work', sanitizedDraft.work);
-      onSchedulesUpdated?.('work');
+      setSchedule("work", sanitizedDraft.work);
+      onSchedulesUpdated?.("work");
     }
     if (dirtyMap.off) {
-      setSchedule('off', sanitizedDraft.off);
-      onSchedulesUpdated?.('off');
+      setSchedule("off", sanitizedDraft.off);
+      onSchedulesUpdated?.("off");
     }
     setDirtyMap({ work: false, off: false });
     onRequestClose?.();
@@ -146,7 +154,7 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
         <Text style={calendarStyles.settingSubtitle}>
           Push a notification when a focus timer completes.
         </Text>
-        {permissionStatus === 'denied' && (
+        {permissionStatus === "denied" && (
           <Text style={calendarStyles.settingWarning}>
             Notifications are disabled in system settings.
           </Text>
@@ -156,8 +164,8 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
         <Switch
           value={enabled}
           onValueChange={handleToggle}
-          thumbColor={enabled ? '#2563eb' : '#f1f5f9'}
-          trackColor={{ false: '#cbd5f5', true: '#93c5fd' }}
+          thumbColor={enabled ? "#2563eb" : "#f1f5f9"}
+          trackColor={{ false: "#cbd5f5", true: "#93c5fd" }}
           ios_backgroundColor="#cbd5f5"
         />
       </View>
@@ -207,7 +215,7 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
           ]}
           contentContainerStyle={calendarStyles.scheduleEditorContent}
           nestedScrollEnabled
-          showsVerticalScrollIndicator={Platform.OS === 'web'}
+          showsVerticalScrollIndicator={Platform.OS === "web"}
           keyboardShouldPersistTaps="handled"
         >
           {current.length === 0 && (
@@ -217,14 +225,14 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
           )}
           {current.map((item, index) => (
             <View
-              key={`${selectedDayType}-${index}`}
+              key={item.id ?? `${selectedDayType}-${index}`}
               style={calendarStyles.scheduleEditRow}
             >
               <View style={calendarStyles.scheduleEditInputs}>
                 <TextInput
                   value={item.time}
                   onChangeText={(value) =>
-                    updateDraft(selectedDayType, index, 'time', value)
+                    updateDraft(selectedDayType, index, "time", value)
                   }
                   placeholder="08:00 – 09:00"
                   placeholderTextColor="#94a3b8"
@@ -233,7 +241,7 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
                 <TextInput
                   value={item.activity}
                   onChangeText={(value) =>
-                    updateDraft(selectedDayType, index, 'activity', value)
+                    updateDraft(selectedDayType, index, "activity", value)
                   }
                   placeholder="Describe the activity"
                   placeholderTextColor="#94a3b8"
@@ -246,7 +254,7 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
                 style={calendarStyles.scheduleEditRemove}
                 accessibilityRole="button"
                 accessibilityLabel="Remove entry"
-                android_ripple={{ color: '#fee2e2', borderless: true }}
+                android_ripple={{ color: "#fee2e2", borderless: true }}
               >
                 <Ionicons name="trash-outline" size={20} color="#dc2626" />
               </Pressable>
@@ -337,7 +345,7 @@ const NotificationSettings = ({ visible, onRequestClose, onSchedulesUpdated }) =
           </View>
 
           <View style={calendarStyles.modalBody}>
-            {activeTab === 'notifications'
+            {activeTab === "notifications"
               ? renderNotificationSettings()
               : renderScheduleEditor()}
           </View>
